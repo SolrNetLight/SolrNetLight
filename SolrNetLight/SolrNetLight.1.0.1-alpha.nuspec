@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
         <id>SolrNetLight</id>
-        <version>1.0.0</version>
+        <version>1.0.1-alpha</version>
         <authors>SolrNetLight</authors>
         <licenseUrl>https://github.com/SolrNetLight/SolrNetLight/blob/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/SolrNetLight/SolrNetLight</projectUrl>

@@ -48,6 +48,11 @@ namespace SolrNetLight.Commands {
         }
 
 
+        /// <summary>
+        /// Executes this command
+        /// </summary>
+        /// <param name="connection">The Solr connection</param>
+        /// <returns></returns>
 	    public string Execute(ISolrConnection connection) {
             string flux = string.Empty;
             JObject json = new JObject();
@@ -58,7 +63,7 @@ namespace SolrNetLight.Commands {
                 flux = JsonConvert.SerializeObject(cmd);
 
                 PropertyInfo[] myPropertyInfo;
-                Dictionary<string, string> dictionnaryProperties = new Dictionary<string, string>();
+                Dictionary<string, object> dictionnaryProperties = new Dictionary<string, object>();
 
                 myPropertyInfo = Type.GetType(typeof(T).AssemblyQualifiedName).GetProperties();
                 for (int i = 0; i < myPropertyInfo.Length; i++)
@@ -67,13 +72,21 @@ namespace SolrNetLight.Commands {
                 }
 
                 json = JObject.Parse(flux);
-                string formattedFlux = removeFields(json.SelectToken("add.doc"), new List<string>() { "phone_" }).ToString();
+                
+                var fieldDictionaryList = new List<string>();
+
+                foreach (var dictionaryItem in dictionnaryProperties)
+                {
+                    fieldDictionaryList.Add(dictionaryItem.Key);
+                }
+
+                string formattedFlux = RemoveFields(json.SelectToken("add.doc"), fieldDictionaryList).ToString();
             }
 
             return connection.Post("/update", json.ToString());
 		}
 
-        private JContainer removeFields(JToken token, List<string> fields)
+        private JContainer RemoveFields(JToken token, List<string> fields)
         {
             JContainer container = token as JContainer;
             if (container == null) return null;
@@ -98,7 +111,7 @@ namespace SolrNetLight.Commands {
                     
                     removeList.Add(el);
                 }
-                removeFields(el, fields);
+                RemoveFields(el, fields);
             }
 
             foreach (JToken el in removeList)
@@ -114,7 +127,7 @@ namespace SolrNetLight.Commands {
             return container;
         }
 
-        public static Dictionary<string, string> GetPropertyAttributes(PropertyInfo property, Dictionary<string, string> dic)
+        public static Dictionary<string, object> GetPropertyAttributes(PropertyInfo property, Dictionary<string, object> dic)
         {
             //Dictionary<string, object> attribs = new Dictionary<string, object>();
             // look for attributes that takes one constructor argument
@@ -126,12 +139,12 @@ namespace SolrNetLight.Commands {
                     bool isDictionnary = dataMemberName.Contains("_");
                     if (isDictionnary && property.PropertyType.Name == "IDictionary`2")
                     {
-                        dic.Add(dataMemberName, property.Name);
+                        dic.Add(dataMemberName, property);
                     }
                 }
 
             }
             return dic;
         }
-	}
+    }
 }

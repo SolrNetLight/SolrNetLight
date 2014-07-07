@@ -84,8 +84,6 @@ namespace SolrNetLight.Impl
         /// <param name="mlthResultParser"></param>
         public SolrQueryExecuter(ISolrConnection connection, ISolrQuerySerializer querySerializer, ISolrFacetQuerySerializer facetQuerySerializer)
         {
-            //this.resultParser = resultParser;
-            //this.mlthResultParser = mlthResultParser;
             this.connection = connection;
             this.querySerializer = querySerializer;
             this.facetQuerySerializer = facetQuerySerializer;
@@ -301,7 +299,7 @@ namespace SolrNetLight.Impl
 
             Dictionary<string, object> dictionnaryProperties = new Dictionary<string, object>();
             PropertyInfo[] myPropertyInfo;
-            // Get the properties of 'Type' class object.
+
             myPropertyInfo = Type.GetType(typeof(T).AssemblyQualifiedName).GetProperties();
             for (int i = 0; i < myPropertyInfo.Length; i++)
             {
@@ -413,6 +411,7 @@ namespace SolrNetLight.Impl
 
         public static Dictionary<string, object> GetPropertyAttributes(PropertyInfo property, Dictionary<string, object> dic)
         {
+            //Dictionary<string, object> attribs = new Dictionary<string, object>();
             // look for attributes that takes one constructor argument
             foreach (var attribData in property.GetCustomAttributes(false))
             {

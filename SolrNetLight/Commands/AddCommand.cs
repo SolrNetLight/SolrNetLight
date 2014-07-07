@@ -23,6 +23,9 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using SolrNetLight.Utils;
 using SolrNetLight;
+using System.Reflection;
+using System;
+using System.Runtime.Serialization;
 
 namespace SolrNetLight.Commands {
 	/// <summary>
@@ -41,23 +44,94 @@ namespace SolrNetLight.Commands {
         /// <param name="parameters"></param>
 	    public AddCommand(IEnumerable<KeyValuePair<T, double?>> documents, AddParameters parameters) {
             this.documents = documents;
-            //documentSerializer = serializer;
             this.parameters = parameters;
         }
 
 
 	    public string Execute(ISolrConnection connection) {
             string flux = string.Empty;
+            JObject json = new JObject();
             foreach (var item in this.documents)
             {
                 var cmd = new SolrAddRootCommandObject<T>(item.Key);
 
                 flux = JsonConvert.SerializeObject(cmd);
-                
-                //connection.Post("/update", o);
+
+                PropertyInfo[] myPropertyInfo;
+                Dictionary<string, string> dictionnaryProperties = new Dictionary<string, string>();
+
+                myPropertyInfo = Type.GetType(typeof(T).AssemblyQualifiedName).GetProperties();
+                for (int i = 0; i < myPropertyInfo.Length; i++)
+                {
+                    dictionnaryProperties = GetPropertyAttributes(myPropertyInfo[i], dictionnaryProperties);
+                }
+
+                json = JObject.Parse(flux);
+                string formattedFlux = removeFields(json.SelectToken("add.doc"), new List<string>() { "phone_" }).ToString();
             }
 
-			return connection.Post("/update", flux);
+            return connection.Post("/update", json.ToString());
 		}
+
+        private JContainer removeFields(JToken token, List<string> fields)
+        {
+            JContainer container = token as JContainer;
+            if (container == null) return null;
+
+            List<JToken> removeList = new List<JToken>();
+
+            List<JProperty> propertiesToAdd = new List<JProperty>();
+
+            foreach (JToken el in container.Children())
+            {
+                JProperty p = el as JProperty;
+                if (p != null && fields.Contains(p.Name))
+                {
+                    foreach (var item in p.Value.ToString().Split(','))
+                    {
+                        string[] keyValue = item.Split(':');
+                        string propertySufix = Regex.Replace(keyValue[0],"[^0-9a-zA-Z]+","");
+                        string propertyValue = Regex.Replace(keyValue[1], "[^0-9a-zA-Z]+", "");
+                        propertiesToAdd.Add(new JProperty(string.Concat(p.Name, propertySufix), propertyValue));
+                    }
+                    
+                    
+                    removeList.Add(el);
+                }
+                removeFields(el, fields);
+            }
+
+            foreach (JToken el in removeList)
+            {
+                el.Remove();
+            }
+
+            foreach (JToken item in propertiesToAdd)
+            {
+                container.Add(item);
+            }
+
+            return container;
+        }
+
+        public static Dictionary<string, string> GetPropertyAttributes(PropertyInfo property, Dictionary<string, string> dic)
+        {
+            //Dictionary<string, object> attribs = new Dictionary<string, object>();
+            // look for attributes that takes one constructor argument
+            foreach (var attribData in property.GetCustomAttributes(false))
+            {
+                if (attribData is DataMemberAttribute)
+                {
+                    string dataMemberName = ((DataMemberAttribute)attribData).Name;
+                    bool isDictionnary = dataMemberName.Contains("_");
+                    if (isDictionnary && property.PropertyType.Name == "IDictionary`2")
+                    {
+                        dic.Add(dataMemberName, property.Name);
+                    }
+                }
+
+            }
+            return dic;
+        }
 	}
 }

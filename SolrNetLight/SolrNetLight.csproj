@@ -82,6 +82,7 @@
     <Compile Include="Impl\FieldParsers\DefaultFieldParser.cs" />
     <Compile Include="Impl\FieldSerializers\DateFieldJsonConverter.cs" />
     <Compile Include="Impl\FieldSerializers\DefaultFieldSerializer.cs" />
+    <Compile Include="Impl\FieldSerializers\DictionaryFieldJsonConverter.cs" />
     <Compile Include="Impl\ISelfSerializingQuery.cs" />
     <Compile Include="Impl\ISolrDocumentActivator.cs" />
     <Compile Include="Impl\ISolrExtractResponseParser.cs" />

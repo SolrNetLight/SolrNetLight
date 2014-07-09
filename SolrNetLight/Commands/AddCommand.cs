@@ -68,7 +68,7 @@ namespace SolrNetLight.Commands {
                 myPropertyInfo = Type.GetType(typeof(T).AssemblyQualifiedName).GetProperties();
                 for (int i = 0; i < myPropertyInfo.Length; i++)
                 {
-                    dictionnaryProperties = GetPropertyAttributes(myPropertyInfo[i], dictionnaryProperties);
+                    dictionnaryProperties = myPropertyInfo[i].GetPropertyAttributes(dictionnaryProperties);
                 }
 
                 json = JObject.Parse(flux);
@@ -127,24 +127,5 @@ namespace SolrNetLight.Commands {
             return container;
         }
 
-        public static Dictionary<string, object> GetPropertyAttributes(PropertyInfo property, Dictionary<string, object> dic)
-        {
-            //Dictionary<string, object> attribs = new Dictionary<string, object>();
-            // look for attributes that takes one constructor argument
-            foreach (var attribData in property.GetCustomAttributes(false))
-            {
-                if (attribData is DataMemberAttribute)
-                {
-                    string dataMemberName = ((DataMemberAttribute)attribData).Name;
-                    bool isDictionnary = dataMemberName.Contains("_");
-                    if (isDictionnary && property.PropertyType.Name == "IDictionary`2")
-                    {
-                        dic.Add(dataMemberName, property);
-                    }
-                }
-
-            }
-            return dic;
-        }
     }
 }

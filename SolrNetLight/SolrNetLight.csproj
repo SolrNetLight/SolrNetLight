@@ -162,6 +162,7 @@
     <Compile Include="SortOrder.cs" />
     <Compile Include="Startup.cs" />
     <Compile Include="Utils\Container.cs" />
+    <Compile Include="Utils\ExtensionsMethods.cs" />
     <Compile Include="Utils\HttpEncoder.cs" />
     <Compile Include="Utils\HttpUtility.cs" />
     <Compile Include="Utils\IContainer.cs" />

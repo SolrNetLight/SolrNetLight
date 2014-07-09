@@ -303,7 +303,7 @@ namespace SolrNetLight.Impl
             myPropertyInfo = Type.GetType(typeof(T).AssemblyQualifiedName).GetProperties();
             for (int i = 0; i < myPropertyInfo.Length; i++)
             {
-                dictionnaryProperties = GetPropertyAttributes(myPropertyInfo[i], dictionnaryProperties);
+                dictionnaryProperties = myPropertyInfo[i].GetPropertyAttributes(dictionnaryProperties);
             }
 
             for (int i = 0; i < rootProduct.Response.NumFound; i++)
@@ -329,7 +329,8 @@ namespace SolrNetLight.Impl
 
                             foreach (var value in item.ToList())
                             {
-                                dico.Add((item as JProperty).Name, Single.Parse(value.ToString()));
+                                string name = (item as JProperty).Name.Remove(0,attribute.Key.Length);
+                                dico.Add(name, Single.Parse(value.ToString()));
                             }
                             pInfo.SetValue(rootProduct.Response.Data[i], dico, null);
                         }
@@ -344,7 +345,8 @@ namespace SolrNetLight.Impl
 
                             foreach (var value in item.ToList())
                             {
-                                dico.Add((item as JProperty).Name, value.ToString());
+                                string name = (item as JProperty).Name.Remove(0, attribute.Key.Length);
+                                dico.Add(name, value.ToString());
                             }
                             pInfo.SetValue(rootProduct.Response.Data[i], dico, null);
                         }
@@ -359,7 +361,8 @@ namespace SolrNetLight.Impl
 
                             foreach (var value in item.ToList())
                             {
-                                dico.Add((item as JProperty).Name, int.Parse(value.ToString()));
+                                string name = (item as JProperty).Name.Remove(0, attribute.Key.Length);
+                                dico.Add(name, int.Parse(value.ToString()));
                             }
                             pInfo.SetValue(rootProduct.Response.Data[i], dico, null);
                         }
@@ -406,27 +409,6 @@ namespace SolrNetLight.Impl
             }
             
             return results;
-        }
-
-
-        public static Dictionary<string, object> GetPropertyAttributes(PropertyInfo property, Dictionary<string, object> dic)
-        {
-            //Dictionary<string, object> attribs = new Dictionary<string, object>();
-            // look for attributes that takes one constructor argument
-            foreach (var attribData in property.GetCustomAttributes(false))
-            {
-                if (attribData is DataMemberAttribute)
-                {
-                    string dataMemberName = ((DataMemberAttribute)attribData).Name;
-                    bool isDictionnary = dataMemberName.Contains("_");
-                    if (isDictionnary && property.PropertyType.Name == "IDictionary`2")
-                    {
-                        dic.Add(dataMemberName, property);
-                    }
-                }
-
-            }
-            return dic;
         }
 
     }

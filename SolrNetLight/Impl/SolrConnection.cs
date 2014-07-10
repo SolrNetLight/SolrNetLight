@@ -81,13 +81,14 @@ namespace SolrNetLight.Impl
         }
 
         private Stream _content;
-        private static ManualResetEvent allDone = new ManualResetEvent(false);
-
+        private static AutoResetEvent allDone = new AutoResetEvent(false);
 
         public string PostStream(string relativeUrl, string contentType, Stream content, IEnumerable<KeyValuePair<string, string>> parameters)
         {
+            string contents = string.Empty;
 
             _content = content;
+
 
             var u = new UriBuilder(serverURL);
             u.Path += relativeUrl;
@@ -102,7 +103,7 @@ namespace SolrNetLight.Impl
             try
             {
 
-                string contents = string.Empty;
+
 
                 IAsyncResult result = request.BeginGetRequestStream(callback =>
                 {
@@ -141,10 +142,11 @@ namespace SolrNetLight.Impl
                 }, request);
 
                 allDone.WaitOne();
-                allDone.Reset();
+                
                 return contents;
-
             }
+
+
             catch (WebException e)
             {
                 var msg = e.Message;
@@ -157,6 +159,7 @@ namespace SolrNetLight.Impl
                 throw new SolrConnectionException(msg, e, request.RequestUri.ToString());
             }
         }
+
         public string Get(string relativeUrl, IEnumerable<KeyValuePair<string, string>> parameters)
         {
             var u = new UriBuilder(serverURL);
@@ -229,7 +232,6 @@ namespace SolrNetLight.Impl
             }, request);
 
             allDone.WaitOne();
-            allDone.Reset();
 
             return response;
         }

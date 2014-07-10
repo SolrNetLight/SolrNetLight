@@ -292,7 +292,7 @@ namespace SolrNetLight.Impl
 
             var results = new SolrQueryResults<T>();
             string json = connection.Get(Handler, param);
-
+            if (json == null) return results;
             var rootProduct = JsonConvert.DeserializeObject<SolrResponse<T>>(json);
 
             JObject obj = JObject.Parse(json);

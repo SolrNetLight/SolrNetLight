@@ -1,0 +1,296 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>SolrNetLight</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+		<meta name="description" content="" />
+		<meta name="keywords" content="" />
+		<link href="http://fonts.googleapis.com/css?family=Open+Sans:300,600,700" rel="stylesheet" />
+		<script src="../../js/jquery.min.js"></script>
+		<script src="../../js/config.js"></script>
+		<script src="../../js/skel.min.js"></script>
+<script type="text/javascript" src="scripts/shCore.js"></script>
+	<script type="text/javascript" src="scripts/shBrushCsharp.js"></script>
+<script type="text/javascript" src="scripts/shBrushPlain.js"></script>
+	<link type="text/css" rel="stylesheet" href="css/shCoreDefault.css"/>
+	<script type="text/javascript">SyntaxHighlighter.all();</script>
+		<noscript>
+			<link rel="stylesheet" href="css/skel-noscript.css" />
+			<link rel="stylesheet" href="css/style.css" />
+			<link rel="stylesheet" href="css/style-desktop.css" />
+		</noscript>
+		<!--[if lte IE 9]><link rel="stylesheet" href="css/ie9.css" /><![endif]-->
+		<!--[if lte IE 8]><script src="js/html5shiv.js"></script><link rel="stylesheet" href="css/ie8.css" /><![endif]-->
+		<!--[if lte IE 7]><link rel="stylesheet" href="css/ie7.css" /><![endif]-->
+	</head>
+	<body>
+
+		<!-- Nav -->
+			<nav id="nav">
+				<ul class="container">
+					<li><a href="#home">Home</a></li>
+					<li><a href="#work">What can I do ?</a></li>
+					<li><a href="#gettingstarted">Getting Started</a></li>
+					
+				</ul>
+			</nav>
+
+		<!-- Home -->
+			
+			
+			
+			<!-- Getting Started -->		
+			<center>
+				<div class="wrapper wrapper-style1">
+					<article id="home">
+						<header>
+								<h2><img src="images/logo.png" alt="" /></h2>
+						</header>						
+						<div class="12u">
+									<p>SolrNetLight is a <strong>Portable Class Library (PCL)</strong> which can be used for <strong>Windows Phone, Windows Store, Xamarin Android, Xamarin IOS apps.</strong>
+								<br/>
+								SolrNetLight is based on <a href="https://github.com/mausch/SolrNet">SolrNet</a> library source code</p>
+								<a href="https://www.nuget.org/packages/SolrNetLight/" class="button button-big">Download 1.0.2-alpha (Current Version)</a>
+								</div>
+					</article>	
+					
+				</div>
+			</center>
+
+		<!-- What can I do -->
+			<div class="wrapper wrapper-style2">
+				<article id="work">
+					<header>
+						<h2>Do Simple Query in SolR Index</h2>
+						<span>SolrNetLight allows you to make queries with all your devices on your SolR server instance in very simple way.</span>
+					</header>
+					<div class="container">
+						<div class="row">
+							<h3>Solr Index</h3>
+
+<br/>
+
+Create a new solr index called "customer" 
+Update its "schema.xml" file with the following properties :
+
+
+<pre class="brush: plain;">
+	<!-- id-->
+	<field name="id" type="long" indexed="true" stored="true" required="true" multiValued="false" />
+	<!-- firstName-->
+	<field name="firstName" type="string" indexed="true" stored="true"/>
+	<!-- lastName -->
+	<field name="lastName" type="string" indexed="true" stored="true"/>
+	<!-- roles -->
+	<field name="roles" type="string" indexed="true" stored="true" multiValued="true"/>
+	<!-- phone_* -->
+	<dynamicField name="phone_*" type="string" indexed="true" stored="true" />
+	 
+</pre>
+<br/>
+Restart your Solr instance to and make sure everything works.
+
+<h3>Sample data</h3>
+
+<pre class="brush: csharp;">
+
+
+{
+  "responseHeader": {
+    "status": 0,
+    "QTime": 0,
+    "params": {
+      "spellcheck": "true",
+      "indent": "true",
+      "q": "*:*",
+      "_": "1404822864286",
+      "wt": "json"
+    }
+  },
+  "response": {
+    "numFound": 4,
+    "start": 0,
+    "docs": [
+      {
+        "id": 1104,
+        "lastName": "Lamande",
+        "firstName": "Dorian",
+        "roles": [
+          ".NET"
+        ],
+        "phone_mobile": "0123456789",
+        "phone_home": "0123456789",
+        "_version_": 1473063496451096600
+      },
+      {
+        "id": 1105,
+        "lastName": "Fabrizi",
+        "firstName": "Guillaume",
+        "roles": [
+          ".NET"
+        ],
+        "phone_mobile": "0123456789",
+        "phone_home": "0123456789",
+        "_version_": 1473063497375940600
+      }
+   ]
+  }
+}
+
+</pre>
+<br/>
+
+<h3>Console App project</h3>
+
+Create a new Console app project
+
+Add  a new class "CustomerIndex" similar to below :
+
+<pre class="brush: csharp;">
+
+
+using Newtonsoft.Json;
+using SolrNetLight.Attributes;
+using SolrNetLight.Impl.FieldSerializers;
+using System;
+using System.Collections.Generic;
+using System.Runtime.Serialization;
+
+namespace SolrNetLight.ConsoleApp
+{
+    [DataContract]
+    public class CustomerIndex
+    {
+        public const string INDEX_NAME = "customer";
+
+        [SolrUniqueKey("id")]
+        [DataMember(Name="id")]
+        public long Id { get; set; }
+
+        [DataMember(Name="lastName")]
+        public string LastName { get; set; }
+
+        [DataMember(Name="firstName")]
+        public string FirstName { get; set; }
+
+        [DataMember(Name = "roles")]
+        public List<string> Roles { get; set; }
+
+        [DataMember(Name = "phone_")]
+        [JsonConverter(typeof(DictionaryFieldJsonConverter))]
+        public IDictionary<String,String> PhoneNumber { get; set; }
+
+        public CustomerIndex()
+        {
+            PhoneNumber = new Dictionary<String, String>();
+	     Roles = new List<string>();
+        }
+    }
+}
+</pre>
+
+<br/>
+
+Link your class properties with SolrIndex schema's properties with DataMember attribute.
+
+Create a "CustomerService" class in order to create our Solr query methods. 
+
+<pre class="brush: csharp;">
+
+
+    public class CustomerService
+    {
+        private ISolrOperations<CustomerIndex> _customerSolRInstance;
+
+        /// <summary>
+        /// Ctor
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public CustomerService()
+        {
+            _customerSolRInstance = ServiceLocator.Current.GetInstance<ISolrOperations<CustomerIndex>>();
+        }
+
+        /// <summary>
+        /// Get Customer by firstname
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public CustomerIndex GetCustomerByName(string firstname)
+        {
+            CustomerIndex result = null;
+            try
+            {
+                var results = _customerSolRInstance.Query(new SolrQueryByField("firstName", firstname));
+                if (results != null && results.Count > 0)
+                {
+                    result = results[0];
+                }
+
+            }
+            catch (SolrNetException ex)
+            {
+                
+            }
+            return result;
+        }
+ }
+
+</pre>
+
+<br/>
+
+In Program.cs,  you can add these following lines and try to get data
+
+<pre class="brush: csharp;">
+
+
+            //Initialize Solr Customer Index with current Solr local instance
+            Startup.Init<CustomerIndex>(String.Format("{0}{1}", "http://localhost:8983/solr/", CustomerIndex.INDEX_NAME));
+
+            //Instanciate customer service
+            CustomerService customer = new CustomerService();
+
+            //Make simple queries
+            customer.GetCustomerByName("Dorian");
+            customer.GetCustomerByName("Guillaume");
+
+            //Display results
+            Console.WriteLine(String.Concat(dlamande.FirstName, dlamande.LastName));
+            Console.WriteLine(String.Concat(gfabrizi.FirstName, gfabrizi.LastName));
+
+	     Console.ReadLine();
+
+</pre>
+<br/>
+Result :
+<image src="images/Console-App.png" />
+
+						</div>
+					</div>
+					
+				</article>
+			</div>
+		<!-- Getting Started -->			
+			<div class="wrapper wrapper-style4">
+				<article id="gettingstarted">
+					<header>
+							<h2>Getting Started</h2>
+							<span>Go on Nuget.org</span>
+					</header>
+					<a href="https://www.nuget.org/packages/SolrNetLight/" class="button button-big">Download 1.0.2-alpha (Current Version)</a>
+					<a href="https://github.com/SolrNetLight/SolrNetLight-Samples" class="button button-big">Download Samples</a>
+					<div class="12u">
+								<hr />
+								<h3>Find us on GitHub and be part of the Adventure !</h3>
+								<ul class="social">
+									<li class="github"><a href="https://github.com/SolrNetLight/" class="fa fa-github"><span>Github</span></a></li>
+								</ul>
+								<hr />
+							</div>
+				</article>	
+				
+			</div>
+	</body>
+</html>

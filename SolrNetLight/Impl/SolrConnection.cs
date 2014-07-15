@@ -81,10 +81,10 @@ namespace SolrNetLight.Impl
         }
 
         private Stream _content;
-        private static AutoResetEvent allDone = new AutoResetEvent(false);
 
         public string PostStream(string relativeUrl, string contentType, Stream content, IEnumerable<KeyValuePair<string, string>> parameters)
         {
+            AutoResetEvent allDone = new AutoResetEvent(false);
             string contents = string.Empty;
 
             _content = content;
@@ -212,7 +212,7 @@ namespace SolrNetLight.Impl
         /// <returns></returns>
         private SolrResponse GetResponse(HttpWebRequest request)
         {
-
+            AutoResetEvent allDone = new AutoResetEvent(false);
             SolrResponse response = new SolrResponse();
 
             var endResponse = request.BeginGetResponse(callback =>

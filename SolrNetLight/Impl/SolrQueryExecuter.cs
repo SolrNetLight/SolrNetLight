@@ -31,6 +31,7 @@ using System.Reflection;
 using SolrNetLight.Attributes;
 using System.Collections;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace SolrNetLight.Impl
 {
@@ -286,12 +287,12 @@ namespace SolrNetLight.Impl
         /// Executes the query and returns results
         /// </summary>
         /// <returns>query results</returns>
-        public SolrQueryResults<T> Execute(ISolrQuery q, QueryOptions options)
+        public async Task<SolrQueryResults<T>> Execute(ISolrQuery q, QueryOptions options)
         {
             var param = GetAllParameters(q, options);
 
             var results = new SolrQueryResults<T>();
-            string json = connection.Get(Handler, param);
+            string json = await connection.Get(Handler, param);
             if (json == null) return results;
             var rootProduct = JsonConvert.DeserializeObject<SolrResponse<T>>(json);
 

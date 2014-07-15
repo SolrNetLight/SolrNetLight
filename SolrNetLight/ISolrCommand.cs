@@ -14,6 +14,7 @@
 // limitations under the License.
 #endregion
 
+using System.Threading.Tasks;
 namespace SolrNetLight {
     /// <summary>
     /// Command interface
@@ -24,6 +25,6 @@ namespace SolrNetLight {
         /// </summary>
         /// <param name="connection"></param>
         /// <returns></returns>
-		string Execute(ISolrConnection connection);
+		Task<string> Execute(ISolrConnection connection);
 	}
 }

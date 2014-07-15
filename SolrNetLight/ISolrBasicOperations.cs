@@ -15,6 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SolrNetLight.Commands.Parameters;
 
 namespace SolrNetLight {
@@ -27,12 +28,12 @@ namespace SolrNetLight {
         /// Commits posted documents
         /// </summary>
         /// <param name="options">Commit options</param>
-        ResponseHeader Commit(CommitOptions options);
+        Task<ResponseHeader> Commit(CommitOptions options);
 
         /// <summary>
         /// Rollbacks all add/deletes made to the index since the last commit.
         /// </summary>
-        ResponseHeader Rollback();
+        Task<ResponseHeader> Rollback();
 
         /// <summary>
         /// Adds / updates several documents with index-time boost
@@ -40,21 +41,21 @@ namespace SolrNetLight {
         /// <param name="docs"></param>
         /// <param name="parameters"></param>
         /// <returns></returns>
-        ResponseHeader AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters);
+        Task<ResponseHeader> AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters);
 
         /// <summary>
         /// Sends a custom command
         /// </summary>
         /// <param name="cmd">command to send</param>
         /// <returns>solr response</returns>
-        string Send(ISolrCommand cmd);
+        Task<string> Send(ISolrCommand cmd);
 
         /// <summary>
         /// Sends a custom command, returns parsed header from xml response
         /// </summary>
         /// <param name="cmd"></param>
         /// <returns></returns>
-        ResponseHeader SendAndParseHeader(ISolrCommand cmd);
+        Task<ResponseHeader> SendAndParseHeader(ISolrCommand cmd);
 
     }
 }

@@ -15,6 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SolrNetLight.Commands.Parameters;
 using SolrNetLight.Impl;
 
@@ -28,7 +29,7 @@ namespace SolrNetLight {
 		/// Executes the query and returns results
 		/// </summary>
 		/// <returns>query results</returns>
-		SolrQueryResults<T> Execute(ISolrQuery q, QueryOptions options);
+		Task<SolrQueryResults<T>> Execute(ISolrQuery q, QueryOptions options);
 
 	}
 }

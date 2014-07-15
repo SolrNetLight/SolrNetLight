@@ -14,6 +14,7 @@
 // limitations under the License.
 #endregion
 
+using System.Threading.Tasks;
 using SolrNetLight.Commands.Parameters;
 using SolrNetLight.Impl;
 
@@ -29,7 +30,7 @@ namespace SolrNetLight {
         /// <param name="query"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        SolrQueryResults<T> Query(ISolrQuery query, QueryOptions options);
+        Task<SolrQueryResults<T>> Query(ISolrQuery query, QueryOptions options);
 
     }
 }

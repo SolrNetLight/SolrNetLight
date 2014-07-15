@@ -26,6 +26,7 @@ using SolrNetLight;
 using System.Reflection;
 using System;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 
 namespace SolrNetLight.Commands {
 	/// <summary>
@@ -53,7 +54,7 @@ namespace SolrNetLight.Commands {
         /// </summary>
         /// <param name="connection">The Solr connection</param>
         /// <returns></returns>
-	    public string Execute(ISolrConnection connection) {
+	    public async Task<string> Execute(ISolrConnection connection) {
             string flux = string.Empty;
             JObject json = new JObject();
             foreach (var item in this.documents)
@@ -83,7 +84,7 @@ namespace SolrNetLight.Commands {
                 string formattedFlux = RemoveFields(json.SelectToken("add.doc"), fieldDictionaryList).ToString();
             }
 
-            return connection.Post("/update", json.ToString());
+            return await connection.Post("/update", json.ToString());
 		}
 
         private JContainer RemoveFields(JToken token, List<string> fields)

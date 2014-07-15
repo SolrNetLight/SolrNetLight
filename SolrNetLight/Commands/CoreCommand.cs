@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SolrNetLight.Commands {
     public class CoreCommand : ISolrCommand {
@@ -12,8 +13,8 @@ namespace SolrNetLight.Commands {
         /// </summary>
         /// <param name="connection">The SolrConnection to use.</param>
         /// <returns>The results of the Command.</returns>
-        public string Execute(ISolrConnection connection) {
-            return connection.Get("/admin/cores", Parameters.ToArray());
+        public async Task<string> Execute(ISolrConnection connection) {
+            return await connection.Get("/admin/cores", Parameters.ToArray());
         }
 
         /// <summary>

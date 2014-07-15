@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SolrNetLight.Commands.Parameters;
 using SolrNetLight.Exceptions;
 
@@ -41,14 +42,16 @@ namespace SolrNetLight.Impl {
         /// <param name="query"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public SolrQueryResults<T> Query(ISolrQuery query, QueryOptions options) {
-            return basicServer.Query(query, options);
+        public async Task<SolrQueryResults<T>> Query(ISolrQuery query, QueryOptions options)
+        {
+            return await basicServer.Query(query, options);
         }
 
-       
 
-        public SolrQueryResults<T> Query(string q) {
-            return Query(new SolrQuery(q));
+
+        public async Task<SolrQueryResults<T>> Query(string q)
+        {
+            return await Query(new SolrQuery(q));
         }
 
         /// <summary>
@@ -57,8 +60,8 @@ namespace SolrNetLight.Impl {
         /// <param name="q"></param>
         /// <param name="orders"></param>
         /// <returns></returns>
-        public SolrQueryResults<T> Query(string q, ICollection<SortOrder> orders) {
-            return Query(new SolrQuery(q), orders);
+        public async Task<SolrQueryResults<T>> Query(string q, ICollection<SortOrder> orders) {
+            return await Query(new SolrQuery(q), orders);
         }
 
         /// <summary>
@@ -67,8 +70,8 @@ namespace SolrNetLight.Impl {
         /// <param name="q"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        public SolrQueryResults<T> Query(string q, QueryOptions options) {
-            return basicServer.Query(new SolrQuery(q), options);
+        public async Task<SolrQueryResults<T>> Query(string q, QueryOptions options) {
+            return  await basicServer.Query(new SolrQuery(q), options);
         }
 
         /// <summary>
@@ -76,8 +79,8 @@ namespace SolrNetLight.Impl {
         /// </summary>
         /// <param name="q"></param>
         /// <returns></returns>
-        public SolrQueryResults<T> Query(ISolrQuery q) {
-            return Query(q, new QueryOptions());
+        public async Task<SolrQueryResults<T>> Query(ISolrQuery q) {
+            return await Query(q, new QueryOptions());
         }
 
         /// <summary>
@@ -86,8 +89,8 @@ namespace SolrNetLight.Impl {
         /// <param name="query"></param>
         /// <param name="orders"></param>
         /// <returns></returns>
-        public SolrQueryResults<T> Query(ISolrQuery query, ICollection<SortOrder> orders) {
-            return Query(query, new QueryOptions { OrderBy = orders });
+        public async Task<SolrQueryResults<T>> Query(ISolrQuery query, ICollection<SortOrder> orders) {
+            return await Query(query, new QueryOptions { OrderBy = orders });
         }
 
         /// <summary>
@@ -95,8 +98,8 @@ namespace SolrNetLight.Impl {
         /// </summary>
         /// <param name="facet"></param>
         /// <returns></returns>
-        public ICollection<KeyValuePair<string, int>> FacetFieldQuery(SolrFacetFieldQuery facet) {
-            var r = basicServer.Query(SolrQuery.All, new QueryOptions {
+        public async Task<ICollection<KeyValuePair<string, int>>> FacetFieldQuery(SolrFacetFieldQuery facet) {
+            var r = await basicServer.Query(SolrQuery.All, new QueryOptions {
                 Rows = 0,
                 Facet = new FacetParameters {
                     Queries = new[] {facet},
@@ -105,56 +108,43 @@ namespace SolrNetLight.Impl {
             return r.FacetFields[facet.Field];
         }
 
-        public ResponseHeader BuildSpellCheckDictionary() {
-            var r = basicServer.Query(SolrQuery.All, new QueryOptions {
+        public async Task<ResponseHeader> BuildSpellCheckDictionary() {
+            var r = await basicServer.Query(SolrQuery.All, new QueryOptions {
                 Rows = 0,
                 //SpellCheck = new SpellCheckingParameters { Build = true },
             });
             return r.Header;
         }
 
-        public ResponseHeader AddWithBoost(T doc, double boost) {
-            return AddWithBoost(doc, boost, null);
+        public async Task<ResponseHeader> AddWithBoost(T doc, double boost)
+        {
+            return await AddWithBoost(doc, boost, null);
         }
 
-        public ResponseHeader AddWithBoost(T doc, double boost, AddParameters parameters) {
-            return ((ISolrOperations<T>)this).AddRangeWithBoost(new[] { new KeyValuePair<T, double?>(doc, boost) }, parameters);
+        public async Task<ResponseHeader> AddWithBoost(T doc, double boost, AddParameters parameters)
+        {
+            return await ((ISolrOperations<T>)this).AddRangeWithBoost(new[] { new KeyValuePair<T, double?>(doc, boost) }, parameters);
         }
 
-        [Obsolete("Use AddRange instead")]
-        public ResponseHeader Add(IEnumerable<T> docs) {
-            return Add(docs, null);
+      
+        public async Task<ResponseHeader> AddRange(IEnumerable<T> docs) {
+            return await AddRange(docs, null);
         }
 
-        public ResponseHeader AddRange(IEnumerable<T> docs) {
-            return AddRange(docs, null);
+        public async Task<ResponseHeader> AddRange(IEnumerable<T> docs, AddParameters parameters) {
+            return await basicServer.AddWithBoost(docs.Select(d => new KeyValuePair<T, double?>(d, null)), parameters);
         }
 
-        [Obsolete("Use AddRange instead")]
-        public ResponseHeader Add(IEnumerable<T> docs, AddParameters parameters) {
-            return basicServer.AddWithBoost(docs.Select(d => new KeyValuePair<T, double?>(d, null)), parameters);
+
+        public async Task<ResponseHeader> AddRangeWithBoost(IEnumerable<KeyValuePair<T, double?>> docs)
+        {
+            return await ((ISolrOperations<T>)this).AddRangeWithBoost(docs, null);
         }
 
-        public ResponseHeader AddRange(IEnumerable<T> docs, AddParameters parameters) {
-            return basicServer.AddWithBoost(docs.Select(d => new KeyValuePair<T, double?>(d, null)), parameters);
-        }
 
-        [Obsolete("Use AddRangeWithBoost instead")]
-        ResponseHeader ISolrOperations<T>.AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs) {
-            return ((ISolrOperations<T>)this).AddWithBoost(docs, null);
-        }
-
-        public ResponseHeader AddRangeWithBoost(IEnumerable<KeyValuePair<T, double?>> docs) {
-            return ((ISolrOperations<T>)this).AddRangeWithBoost(docs, null);
-        }
-
-        [Obsolete("Use AddRangeWithBoost instead")]
-        ResponseHeader ISolrOperations<T>.AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters) {
-            return basicServer.AddWithBoost(docs, parameters);
-        }
-
-        public ResponseHeader AddRangeWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters) {
-            return basicServer.AddWithBoost(docs, parameters);
+        public async Task<ResponseHeader> AddRangeWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters)
+        {
+            return await basicServer.AddWithBoost(docs, parameters);
         }
 
 
@@ -166,25 +156,27 @@ namespace SolrNetLight.Impl {
             return prop.GetValue(doc, null);
         }
 
-        public ResponseHeader Commit() {
-            return basicServer.Commit(null);
+        public async Task<ResponseHeader> Commit() {
+            return await basicServer.Commit(null);
         }
 
         /// <summary>
         /// Rollbacks all add/deletes made to the index since the last commit.
         /// </summary>
         /// <returns></returns>
-        public ResponseHeader Rollback() {
-            return basicServer.Rollback();
+        public async Task<ResponseHeader> Rollback() {
+            return await basicServer.Rollback();
         }
 
 
-        public ResponseHeader Add(T doc) {
-            return Add(doc, null);
+        public async Task<ResponseHeader> Add(T doc)
+        {
+            return await Add(doc, null);
         }
 
-        public ResponseHeader Add(T doc, AddParameters parameters) {
-            return AddRange(new[] { doc }, parameters);
+        public async Task<ResponseHeader> Add(T doc, AddParameters parameters)
+        {
+            return await AddRange(new[] { doc }, parameters);
         }
 
     }

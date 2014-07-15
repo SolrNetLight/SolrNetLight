@@ -24,6 +24,8 @@ using SolrNetLight.Exceptions;
 using SolrNetLight.Utils;
 using HttpUtility = SolrNetLight.Utils.HttpUtility;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace SolrNetLight.Impl
 {
@@ -71,79 +73,38 @@ namespace SolrNetLight.Impl
         /// </summary>
         public int Timeout { get; set; }
 
-        public string Post(string relativeUrl, string s)
+        public async Task<string> Post(string relativeUrl, string s)
         {
             var bytes = Encoding.UTF8.GetBytes(s);
             using (var content = new MemoryStream(bytes))
             {
-                return PostStream(relativeUrl, "application/json", content, null); //"application/json" "text/xml; charset=utf-8"
+                return await PostStream(relativeUrl, "application/json", content, null); //"application/json" "text/xml; charset=utf-8"
             }
         }
 
         private Stream _content;
 
-        public string PostStream(string relativeUrl, string contentType, Stream content, IEnumerable<KeyValuePair<string, string>> parameters)
+        public async Task<string> PostStream(string relativeUrl, string contentType, Stream content, IEnumerable<KeyValuePair<string, string>> parameters)
         {
-            AutoResetEvent allDone = new AutoResetEvent(false);
-            string contents = string.Empty;
-
-            _content = content;
-
-
             var u = new UriBuilder(serverURL);
             u.Path += relativeUrl;
             u.Query = GetQuery(parameters);
 
-            var request = HttpWebRequest.Create(u.Uri);
-            request.Method = "POST";
-
-            if (contentType != null)
-                request.ContentType = contentType;
-
-            try
-            {
-
-
-
-                IAsyncResult result = request.BeginGetRequestStream(callback =>
-                {
-                    var endRequest = (HttpWebRequest)callback.AsyncState;
-                    var postStream = (Stream)request.EndGetRequestStream(callback);
-
-                    using (var reader = new StreamReader(content))
+            HttpClient httpClient = new HttpClient();
+           
+            StringContent sc = null;
+            using (var reader = new StreamReader(content))
                     {
                         string postData = reader.ReadToEnd();
-                        byte[] byteArray = Encoding.UTF8.GetBytes(postData);
-
-                        // Write to the request stream.
-                        postStream.Write(byteArray, 0, postData.Length);
-                        postStream.Dispose();
-
-                        endRequest.BeginGetResponse(callback2 =>
-                            {
-                                HttpWebRequest request2 = (HttpWebRequest)callback2.AsyncState;
-
-                                // End the operation
-                                HttpWebResponse response = (HttpWebResponse)request.EndGetResponse(callback2);
-                                Stream streamResponse = response.GetResponseStream();
-                                StreamReader streamRead = new StreamReader(streamResponse);
-                                contents = streamRead.ReadToEnd();
-                                // Close the stream object
-                                allDone.Set();
-
-                            }, endRequest);
-
-                        allDone.WaitOne();
-
-                    }
-                    allDone.Set();
-
-
-                }, request);
-
-                allDone.WaitOne();
+                        sc = new StringContent(postData, Encoding.UTF8, contentType);
                 
-                return contents;
+            }
+           
+            try
+            {
+                 HttpResponseMessage response = await httpClient.PostAsync(u.Uri, sc);
+                 return await response.Content.ReadAsStringAsync();
+
             }
 
 
@@ -156,29 +117,48 @@ namespace SolrNetLight.Impl
                     using (var sr = new StreamReader(s))
                         msg = sr.ReadToEnd();
                 }
-                throw new SolrConnectionException(msg, e, request.RequestUri.ToString());
+                throw new SolrConnectionException(msg, e, relativeUrl);
             }
         }
 
-        public string Get(string relativeUrl, IEnumerable<KeyValuePair<string, string>> parameters)
+        public async Task<string> Get(string relativeUrl, IEnumerable<KeyValuePair<string, string>> parameters)
         {
             var u = new UriBuilder(serverURL);
             u.Path += relativeUrl;
             u.Query = GetQuery(parameters);
-            //u.Query += @"&wt=json";
 
-            HttpWebRequest request = HttpWebRequest.CreateHttp(u.Uri);
-            request.Method = "GET";
+            //HttpWebRequest request = HttpWebRequest.CreateHttp(u.Uri);
+            //request.Method = "GET";
 
             try
             {
-                var response = GetResponse(request);
-                return response.Data;
+                //var response = GetResponse(request);
+
+                HttpClient httpClient = new HttpClient();
+                return await httpClient.GetStringAsync(u.Uri);
 
             }
             catch (WebException e)
             {
                 throw new SolrConnectionException(e, u.Uri.ToString());
+            }
+        }
+
+        private Task MakeAsyncRequest(Uri uri, string method)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ContentType = "application/Json";
+            request.Method = method;
+            return Task.Factory.FromAsync(request.BeginGetResponse, asyncResult => request.EndGetResponse(asyncResult), null)
+                                .ContinueWith(t => this.ReadFromStreamResponse(t.Result));
+        }
+
+        private string ReadFromStreamResponse(WebResponse webResponse)
+        {
+            using (var s = webResponse.GetResponseStream())
+            using (var sr = new StreamReader(s))
+            {
+                return sr.ReadToEnd();
             }
         }
 
@@ -205,38 +185,6 @@ namespace SolrNetLight.Impl
                 .ToArray());
         }
 
-        /// <summary>
-        /// Gets http response, returns (etag, data)
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        private SolrResponse GetResponse(HttpWebRequest request)
-        {
-            AutoResetEvent allDone = new AutoResetEvent(false);
-            SolrResponse response = new SolrResponse();
-
-            var endResponse = request.BeginGetResponse(callback =>
-            {
-                var endRequest = (HttpWebRequest)callback.AsyncState;
-                var endGetResponse = (HttpWebResponse)request.EndGetResponse(callback);
-
-                using (var stream = endGetResponse.GetResponseStream())
-                using (var reader = new StreamReader(stream))
-                {
-                    response = new SolrResponse(null, reader.ReadToEnd());
-                    allDone.Set();
-                }
-
-
-
-            }, request);
-
-            allDone.WaitOne();
-
-            return response;
-        }
-
-
         private struct SolrResponse
         {
             public string ETag { get; private set; }
@@ -248,6 +196,12 @@ namespace SolrNetLight.Impl
                 Data = data;
             }
         }
+
+
+
+
+
+
 
     }
 }

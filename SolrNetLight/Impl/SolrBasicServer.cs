@@ -15,6 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using SolrNetLight.Commands;
@@ -45,7 +46,7 @@ namespace SolrNetLight.Impl
             //this.dihStatusParser = dihStatusParser;
         }
 
-        public ResponseHeader Commit(CommitOptions options)
+        public async Task<ResponseHeader> Commit(CommitOptions options)
         {
             options = options ?? new CommitOptions();
             var cmd = new CommitCommand
@@ -55,39 +56,42 @@ namespace SolrNetLight.Impl
                 ExpungeDeletes = options.ExpungeDeletes,
                 MaxSegments = options.MaxSegments,
             };
-            return SendAndParseHeader(cmd);
+            return await SendAndParseHeader(cmd);
         }
 
-        public ResponseHeader Rollback()
+        public async Task<ResponseHeader> Rollback()
         {
-            return SendAndParseHeader(new RollbackCommand());
+            return await SendAndParseHeader(new RollbackCommand());
         }
 
-        public ResponseHeader AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters)
+        public async Task<ResponseHeader> AddWithBoost(IEnumerable<KeyValuePair<T, double?>> docs, AddParameters parameters)
         {
             var cmd = new AddCommand<T>(docs, parameters);
-            return SendAndParseHeader(cmd);
+            return await SendAndParseHeader(cmd);
         }
 
-        public SolrQueryResults<T> Query(ISolrQuery query, QueryOptions options)
+        public async Task<SolrQueryResults<T>> Query(ISolrQuery query, QueryOptions options)
         {
-            return queryExecuter.Execute(query, options);
+            return await queryExecuter.Execute(query, options);
         }
 
-        public string Send(ISolrCommand cmd)
+        public async Task<string> Send(ISolrCommand cmd)
         {
-            return cmd.Execute(connection);
+            return await cmd.Execute(connection);
         }
 
 
-        public ResponseHeader SendAndParseHeader(ISolrCommand cmd)
+        public async Task<ResponseHeader> SendAndParseHeader(ISolrCommand cmd)
         {
-            var jsonResponse = Send(cmd);
+            var jsonResponse = await Send(cmd);
 
             return JsonConvert.DeserializeObject<ResponseHeader>(jsonResponse);
 
         }
 
 
+
+
+        
     }
 }

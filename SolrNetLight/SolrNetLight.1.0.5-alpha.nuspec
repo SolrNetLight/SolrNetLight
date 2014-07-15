@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
     <metadata>
         <id>SolrNetLight</id>
-        <version>1.0.4-alpha</version>
+        <version>1.0.5-alpha</version>
         <authors>SolrNetLight</authors>
         <licenseUrl>https://github.com/SolrNetLight/SolrNetLight/blob/master/LICENSE</licenseUrl>
         <projectUrl>https://github.com/SolrNetLight/SolrNetLight</projectUrl>
@@ -12,6 +12,7 @@
         <dependencies>
             <dependency id="Newtonsoft.Json" version="6.0.3" />
             <dependency id="Microsoft.Net.Http" version="2.2.22" />
+            <dependency id="Microsoft.Bcl.Async" version="1.0.168" />
         </dependencies>
     </metadata>
     <files>

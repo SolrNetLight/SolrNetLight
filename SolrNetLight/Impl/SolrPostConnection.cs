@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using SolrNetLight.Exceptions;
 using SolrNetLight.Utils;
 
@@ -23,12 +25,12 @@ namespace SolrNetLight.Impl
 			this.serverUrl = serverUrl;
 		}
 
-		public string Post(string relativeUrl, string s)
+		public async Task<string> Post(string relativeUrl, string s)
 		{
-			return conn.Post(relativeUrl, s);
+			return await conn.Post(relativeUrl, s);
 		}
 
-		public string Get(string relativeUrl, IEnumerable<KeyValuePair<string, string>> parameters)
+		public async Task<string> Get(string relativeUrl, IEnumerable<KeyValuePair<string, string>> parameters)
 		{
 			var u = new UriBuilder(serverUrl);
 			u.Path += relativeUrl;
@@ -41,24 +43,12 @@ namespace SolrNetLight.Impl
 
             try
             {
-                string endResponse = string.Empty;
+                HttpClient httpClient = new HttpClient();
+                StringContent queryString = new StringContent(qs);
+                HttpResponseMessage response = await httpClient.PostAsync(u.Uri, queryString);
 
-                var postParams = (IAsyncResult)request.BeginGetRequestStream(callback =>
-                {
-                    var endRequest = (HttpWebRequest)callback.AsyncState;
-                     var response = request.EndGetResponse(callback);
+                return await response.Content.ReadAsStringAsync();
 
-                     using (var stream = response.GetResponseStream())
-                     {
-                          var sw = new StreamWriter(stream);
-                          sw.Write(qs);
-
-                         var sr = new StreamReader(stream, Encoding.UTF8, true);
-                         endResponse = sr.ReadToEnd();
-                     }
-                }, request);
-
-                return endResponse;
             }
             catch (WebException e)
             {
@@ -66,9 +56,11 @@ namespace SolrNetLight.Impl
             }
 		}
 
-		public string PostStream(string relativeUrl, string contentType, System.IO.Stream content, IEnumerable<KeyValuePair<string, string>> getParameters) {
-			return conn.PostStream(relativeUrl, contentType, content, getParameters);
+		public async Task<string> PostStream(string relativeUrl, string contentType, System.IO.Stream content, IEnumerable<KeyValuePair<string, string>> getParameters) {
+			return await conn.PostStream(relativeUrl, contentType, content, getParameters);
 		}
 
-	}
+
+       
+    }
 }

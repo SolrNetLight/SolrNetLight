@@ -16,6 +16,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 
@@ -49,12 +50,12 @@ namespace SolrNetLight.Commands {
         /// </summary>
         public int? MaxSegments { get; set; }
 
-		public string Execute(ISolrConnection connection) {
+		public async Task<string> Execute(ISolrConnection connection) {
 
             SolrCommitRootCommandObject cmd = new SolrCommitRootCommandObject();
             
             string flux = JsonConvert.SerializeObject(cmd);
-            return connection.Post("/update", flux);
+            return await connection.Post("/update", flux);
 
           
 		}

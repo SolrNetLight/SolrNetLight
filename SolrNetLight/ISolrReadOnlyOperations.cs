@@ -15,6 +15,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using SolrNetLight.Commands.Parameters;
 using SolrNetLight.Impl;
 
@@ -29,7 +30,7 @@ namespace SolrNetLight {
         /// </summary>
         /// <param name="q">query to execute</param>
         /// <returns>query results</returns>
-        SolrQueryResults<T> Query(string q);
+        Task<SolrQueryResults<T>> Query(string q);
 
         /// <summary>
         /// Executes a query
@@ -37,7 +38,7 @@ namespace SolrNetLight {
         /// <param name="q"></param>
         /// <param name="orders"></param>
         /// <returns></returns>
-        SolrQueryResults<T> Query(string q, ICollection<SortOrder> orders);
+        Task<SolrQueryResults<T>> Query(string q, ICollection<SortOrder> orders);
 
         /// <summary>
         /// Executes a query
@@ -45,14 +46,14 @@ namespace SolrNetLight {
         /// <param name="q"></param>
         /// <param name="options"></param>
         /// <returns></returns>
-        SolrQueryResults<T> Query(string q, QueryOptions options);
+        Task<SolrQueryResults<T>> Query(string q, QueryOptions options);
 
         /// <summary>
         /// Executes a query
         /// </summary>
         /// <param name="q"></param>
         /// <returns></returns>
-        SolrQueryResults<T> Query(ISolrQuery q);
+        Task<SolrQueryResults<T>> Query(ISolrQuery q);
 
         /// <summary>
         /// Executes a query
@@ -60,13 +61,13 @@ namespace SolrNetLight {
         /// <param name="query"></param>
         /// <param name="orders"></param>
         /// <returns></returns>
-        SolrQueryResults<T> Query(ISolrQuery query, ICollection<SortOrder> orders);
+        Task<SolrQueryResults<T>> Query(ISolrQuery query, ICollection<SortOrder> orders);
 
         /// <summary>
         /// Executes a single facet field query
         /// </summary>
         /// <param name="facets"></param>
         /// <returns></returns>
-        ICollection<KeyValuePair<string, int>> FacetFieldQuery(SolrFacetFieldQuery facets);
+        Task<ICollection<KeyValuePair<string, int>>> FacetFieldQuery(SolrFacetFieldQuery facets);
     }
 }
